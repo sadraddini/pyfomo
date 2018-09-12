@@ -28,7 +28,7 @@ if True:# test 2
     
 if True: # test 3
     print("\n\n\n Test 3")
-    G=np.array([[1,2],[1,2]])
+    G=np.array([[3,1],[9,3]])
     Pi=np.array([[ 1.,  0.],[0.,  1.],[-1., -0.],[-0., -1.]])
     (H,h)=project(G,Pi,np.ones((4,1)))
     print("H=",H)

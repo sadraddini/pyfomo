@@ -16,6 +16,18 @@ class system():
         self.eq=(None,None)
         
 def fourier_motzkin_eliminate_single(var_index,A,b,C=None,d=None,atol=10**-8):
+    """
+    Performs Fourier-Motzkin elimination method
+    Inputs:
+        var_index: an integer between [0,N], the index of variable to be removed, N is the number of variables
+        A and b: A x <= b
+        C and d (optional): Cx=d
+        A,B,c,d should be numpy arrays
+    """
+    if var_index>A.shape[1]:
+        raise("Error: %d is greather the number of variables. Choose a variable index between 0 and %d"%(var_index,A.shape[1]))
+    if A.shape[0]!=b.shape[0]:
+        raise("Error: number of rows in A: ",A.shape[0]," and b:",b.shape[0]," mismatch")
     if type(C)==type(np.array([1])):
         A=np.vstack((A,C,-C))
         b=np.vstack((b,d,-d))
@@ -51,9 +63,10 @@ def fourier_motzkin_eliminate_single(var_index,A,b,C=None,d=None,atol=10**-8):
 def project(T,A,b,C=None,d=None,atol=10**-8):
     """
     Finds the H-representation of T{Ax<=b, Cx=d}
+    Inputs: T
     """
     (m,n)=T.shape # m: y, n: x, y=Tx
-    if C==None and d==None:
+    if type(C)!=type(np.array([1])):
         A=np.hstack((np.zeros((A.shape[0],m)),A))
         b=b
         C=np.hstack((-np.eye(m),T))
@@ -62,3 +75,28 @@ def project(T,A,b,C=None,d=None,atol=10**-8):
         for j in range(n-1):
             (A,b)=fourier_motzkin_eliminate_single(A.shape[1]-1,A,b,None,None,atol)
         return (A,b)
+    else:
+        print("Projecting with A,b,C,d")
+        A=np.hstack((np.zeros((A.shape[0],m)),A))
+        b=b
+        print C
+        print d
+        print np.hstack((-np.eye(m),T))
+        print np.hstack((-np.zeros((C.shape[0],n)),C))
+        C=np.vstack((np.hstack((-np.eye(m),T)),np.hstack((-np.zeros((C.shape[0],n)),C))))
+        d=np.vstack((np.zeros((m,1)),d))
+        (A,b)=fourier_motzkin_eliminate_single(n+m-1,A,b,C,d,atol)
+        for j in range(n-1):
+            (A,b)=fourier_motzkin_eliminate_single(A.shape[1]-1,A,b,None,None,atol)
+        return (A,b)
+        
+        
+        
+
+def convexhull(list_of_polytopes):
+    """
+    Computes a H-representation of the convex hull of a list of polytopes
+    Inputs:
+        list_of_polytopes: pairs of (H,h)
+    """
+    pass

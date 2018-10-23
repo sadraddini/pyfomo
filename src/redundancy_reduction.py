@@ -20,7 +20,7 @@ def canonical_polytope(H,h,flag=None,atol=10**-8):
             row=row
         else:
             row+=1
-    return (H,h)
+    return normalize(H,h)
     
 def remove_row(H,h,row):
     """

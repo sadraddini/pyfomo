@@ -9,7 +9,10 @@ import sys
 sys.path.append('..')
 
 import numpy as np
-from src.main import fourier_motzkin_eliminate_single,project
+
+from src.visualize_2D import visualize_2D
+from src.main import fourier_motzkin_eliminate_single,project,convexhull
+from src.polytope import translate
 
 if True: # test 1   
     print("\n Test 1: Simple 2D Polytope")
@@ -31,18 +34,33 @@ if True:# test 2
     
 if True: # test 3
     print("\n\n\n Test 3: Projection")
-    G=np.array([[3,1],[9,3]])
+    G=np.array([[1,3],[-1,2]])
     Pi=np.array([[ 1.,  0.],[0.,  1.],[-1., -0.],[-0., -1.]])
-    (H,h)=project(G,Pi,np.ones((4,1)))
-    print("H=",H)
-    print("h=",h)
+    p1=translate(project(G,Pi,np.ones((4,1))),np.array([2,2]).reshape(2,1))
+    p1.show()
     
 if True: # test 4
-    print("\n\n\n Test 4: Projection with Plane")
-    G=np.array([[3,1],[9,3]])
+    print("\n\n\n Test 4: Another Projection")
+    G=np.array([[4,1],[-5,-1]])
     Pi=np.array([[ 1.,  0.],[0.,  1.],[-1., -0.],[-0., -1.]])
-    C=np.array([[1,1]]).reshape(1,2)
-    d=np.array([[0]])
-    (H,h)=project(G,Pi,np.ones((4,1)),C,d)
-    print("H=",H)
-    print("h=",h)
+    p2=project(G,Pi,np.ones((4,1)))
+    p2.show()
+    
+if True: # test 5
+    print("\n\n\n Test 5: Another Projection")
+    G=np.array([[1,0],[6,1]])
+    Pi=np.array([[ 1.,  0.],[0.,  1.],[-1., -0.],[-0., -1.]])
+    p3=translate(project(G,Pi,np.ones((4,1))),np.array([-5,0]).reshape(2,1))
+    p3.show()
+
+if True: # test 6
+    print("\n\n\n Test 5: Another Projection")
+    G=np.array([[-1,-1],[6,8]])
+    Pi=np.array([[ 1.,  0.],[0.,  1.],[-1., -0.],[-0., -1.]])
+    p4=project(G,Pi,np.ones((4,1)))
+    p4.show()
+    
+p=convexhull([p1,p2,p3,p4])
+p.show()
+
+visualize_2D([p,p1,p2,p3,p4])

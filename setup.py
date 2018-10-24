@@ -8,7 +8,7 @@ Created on Tue Oct 23 15:55:10 2018
 from distutils.core import setup
 
 setup(
-    name='fouriermotzkin',
+    name='pyfomo',
     version='0.1dev',
     packages=[],
     license='MIT',

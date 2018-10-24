@@ -7,8 +7,10 @@ Created on Mon Sep 10 12:14:51 2018
 """
 
 import numpy as np
+from scipy.linalg import block_diag
 
 from redundancy_reduction import canonical_polytope
+from polytope import polytope
 
 class system():
     def __init__(self):
@@ -23,6 +25,8 @@ def fourier_motzkin_eliminate_single(var_index,A,b,C=None,d=None,atol=10**-8):
         A and b: A x <= b
         C and d (optional): Cx=d
         A,B,c,d should be numpy arrays
+    Output:
+        A_new and b_new such that A_new x_reduced <=b_new, where x_reduced does not include var_index
     """
     if var_index>A.shape[1]:
         raise("Error: %d is greather the number of variables. Choose a variable index between 0 and %d"%(var_index,A.shape[1]))
@@ -74,29 +78,44 @@ def project(T,A,b,C=None,d=None,atol=10**-8):
         (A,b)=fourier_motzkin_eliminate_single(n+m-1,A,b,C,d,atol)
         for j in range(n-1):
             (A,b)=fourier_motzkin_eliminate_single(A.shape[1]-1,A,b,None,None,atol)
-        return (A,b)
+        return polytope(A,b)
     else:
         print("Projecting with A,b,C,d")
         A=np.hstack((np.zeros((A.shape[0],m)),A))
         b=b
-        print C
-        print d
-        print np.hstack((-np.eye(m),T))
-        print np.hstack((-np.zeros((C.shape[0],n)),C))
-        C=np.vstack((np.hstack((-np.eye(m),T)),np.hstack((-np.zeros((C.shape[0],n)),C))))
+        C=np.vstack((np.hstack((-np.eye(m),T)),np.hstack((np.zeros((C.shape[0],n)),C))))
         d=np.vstack((np.zeros((m,1)),d))
-        (A,b)=fourier_motzkin_eliminate_single(n+m-1,A,b,C,d,atol)
+        (A,b)=fourier_motzkin_eliminate_single(A.shape[1]-1,A,b,C,d,atol)
         for j in range(n-1):
             (A,b)=fourier_motzkin_eliminate_single(A.shape[1]-1,A,b,None,None,atol)
-        return (A,b)
+        return polytope(A,b)
         
-        
-        
-
-def convexhull(list_of_polytopes):
+def convexhull(list_of_polytopes,atol=10**-8):
     """
     Computes a H-representation of the convex hull of a list of polytopes
     Inputs:
         list_of_polytopes: pairs of (H,h)
     """
-    pass
+    f=open("convexhull.log","w")
+    n=list_of_polytopes[0].H.shape[1] # The space dimension
+    N=len(list_of_polytopes)
+    if N>2:
+        p_2=convexhull(list_of_polytopes[0:2],atol)
+        return convexhull([p_2]+list_of_polytopes[2:],atol)
+    I_N=np.hstack(tuple([np.eye(n)]+([-np.eye(n)]*N)))
+    X1=block_diag(np.zeros((2*n,n)),*[p.H for p in list_of_polytopes])
+    X1[0:n,:]=I_N
+    X1[n:2*n:]=-I_N
+    X2=np.vstack( (np.zeros((2*n,N)),block_diag(*[-p.h for p in list_of_polytopes]), ))
+    X3=np.vstack((-np.eye(N),np.ones((1,N))))
+    # A and b
+    A=np.block([[X1, X2], [np.zeros((X3.shape[0],X1.shape[1])), X3]])
+    b=np.zeros((A.shape[0],1))
+    b[A.shape[0]-1,0]=1
+    # Fourier Motzkin Elimination Method
+    for i in range(N*(n+1)):
+        f.write("\nIteration %d from %d: A shape is (%d,%d) and b length is %d"%(i,N*(n+1),A.shape[0],A.shape[1],b.shape[0]))
+        print "Iteration %d from %d: A shape is (%d,%d) and b length is %d"%(i,N*(n+1),A.shape[0],A.shape[1],b.shape[0])
+        (A,b)=fourier_motzkin_eliminate_single(A.shape[1]-1,A,b,None,None,atol)
+    f.close()
+    return polytope(A,b)

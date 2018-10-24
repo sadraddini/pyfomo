@@ -18,8 +18,10 @@ def canonical_polytope(H,h,flag=None,atol=10**-8):
         if check_redundancy_row(H,h,row,atol)==True: # The row should be removed
             (H,h)=remove_row(H,h,row)
             row=row
+            print("solved a linear program and removed a row")
         else:
             row+=1
+            print("solved a linear program but no row removal happened")
     return normalize(H,h)
     
 def remove_row(H,h,row):
@@ -34,6 +36,9 @@ def remove_row(H,h,row):
                     
 
 def check_redundancy_row(H,h,ROW,atol=10**-8):
+    """
+    Solve a linear program to check if the ROW'th row of {x|Hx<=h} is redundant
+    """
     model=Model("Row Redundancy Check")
     n=H.shape[1]
     x=np.empty((n,1),dtype='object')
@@ -57,6 +62,7 @@ def check_redundancy_row(H,h,ROW,atol=10**-8):
         else:
             return True # It is redudant
     else:
+        # Model becomes infeasible (unbounded)
         return False
     
 def normalize(H,h):
